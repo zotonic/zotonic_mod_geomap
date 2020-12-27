@@ -265,6 +265,8 @@ openstreetmap(Q, Context) ->
                 _ ->
                     {error, not_found}
             end;
+        {ok, []} ->
+            {error, not_found};
         {ok, JSON} ->
             lager:error("OpenStreetMap unknown JSON ~p on ~p", [JSON, Q]),
             {error, unexpected_result};
@@ -294,16 +296,19 @@ googlemaps_check(Q, Context) ->
     end.
 
 googlemaps(Q, Context) ->
+    googlemaps(m_config:get_value(mod_geomap, google_api_key, Context), Q, Context).
+
+googlemaps(undefined, _Q, _Context) ->
+    {error, apikey};
+googlemaps(<<>>, _Q, _Context) ->
+    {error, apikey};
+googlemaps("", _Q, _Context) ->
+    {error, apikey};
+googlemaps(ApiKey, Q, Context) ->
     Url = "https://maps.googleapis.com/maps/api/geocode/json?address="
-        ++ z_convert:to_list(Q),
-    Url1 = case m_config:get_value(mod_geomap, google_api_key, Context) of
-        undefined -> Url;
-        <<>> -> Url;
-        "" -> Url;
-        ApiKey ->
-            Url ++ "&key=" ++ z_convert:to_list(ApiKey)
-    end,
-    case get_json(Url1, Context) of
+        ++ z_convert:to_list(Q)
+        ++ "&key=" ++ z_convert:to_list(ApiKey),
+    case get_json(Url, Context) of
         {ok, #{ <<"status">> := <<"OK">> } = Props } ->
             case maps:get(<<"results">>, Props) of
                 [ Result ] ->
@@ -352,7 +357,7 @@ googlemaps(Q, Context) ->
 
 get_json(Url, Context) ->
     Hs = [
-        {"referer", z_convert:to_list(z_context:abs_url("/", Context))},
+        {"Referer", z_convert:to_list(z_context:abs_url("/", Context))},
         {"User-Agent", "Zotonic"}
     ],
     case httpc:request(
@@ -404,8 +409,8 @@ q(R, Context) ->
                 <<>> ->
                     {ok, country, Country};
                 _ ->
-                    Country = iolist_to_binary(country_name(Country, Context)),
-                    {ok, full, <<Fs/binary, Country/binary>>}
+                    Country1 = iolist_to_binary(country_name(Country, Context)),
+                    {ok, full, <<Fs/binary, Country1/binary>>}
             end
     end.
 
