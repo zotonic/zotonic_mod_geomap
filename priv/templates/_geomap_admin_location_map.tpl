@@ -3,38 +3,34 @@
 {% with m.rsc[id].computed_location_lat as latitude %}
 {% with m.rsc[id].computed_location_lng as longitude %}
 <div class="row">
-    <div class="form-group col-md-4">
-    	<label for="location_lat" class="control-label">{_ Latitude _}</label>
-		<input id="location_lat" type="text" name="location_lat" value="{{ m.rsc[id].location_lat }}" class="form-control" />
+    <div class="form-group col-md-4 label-floating">
+		<input id="location_lat" type="text" name="location_lat" value="{{ m.rsc[id].location_lat }}" class="form-control" placeholder="{_ Latitude _}" pattern="^\s*[0-9]+(\.[0-9]+)?\s*$">
+        <label for="location_lat" class="control-label">{_ Latitude _}</label>
         {% if id %}
             <span class="text-muted">{_ indexed _}: {{ latitude|default:"-" }}</span>
         {% endif %}
     </div>
 
-    <div class="form-group col-md-4">
-    	<label for="location_lng" class="control-label">{_ Longitude _}</label>
-    	<div class="controls">
-    		<input id="location_lng" type="text" name="location_lng" value="{{ m.rsc[id].location_lng }}" class="form-control" />
-            {% if id %}
-        		<span class="text-muted">{_ indexed _}: {{ longitude|default:"-" }}</span>
-            {% endif %}
-    	</div>
+    <div class="form-group col-md-4 label-floating">
+		<input id="location_lng" type="text" name="location_lng" value="{{ m.rsc[id].location_lng }}" class="form-control" placeholder="{_ Longitude _}" pattern="^\s*[0-9]+(\.[0-9]+)?\s*$">
+        <label for="location_lng" class="control-label">{_ Longitude _}</label>
+        {% if id %}
+    		<span class="text-muted">{_ indexed _}: {{ longitude|default:"-" }}</span>
+        {% endif %}
     </div>
 
-    <div class="form-group col-md-4">
+    <div class="form-group col-md-4 label-floating">
+        <input id="location_zoom_level" type="number" name="location_zoom_level" min="0" max="29"
+               value="{{ m.rsc[id].location_zoom_level }}" class="form-control" placeholder="{_ Zoom Level _} (0 … 29)">
         <label for="location_zoom_level" class="control-label">{_ Zoom Level _} (0 … 29)</label>
-        <div class="controls">
-            <input id="location_zoom_level" type="number" name="location_zoom_level" min="0" max="29"
-                   value="{{ m.rsc[id].location_zoom_level }}" class="form-control" />
-        </div>
     </div>
 </div>
 
 <div class="form-group">
-	<button class="btn" id="location_me"><i class="icon-screenshot"></i> {_ Set to current location _}</button>
-	<button class="btn" id="location_address"><i class="icon-screenshot"></i> {_ Set to entered address _}</button>
-	<button class="btn" id="location_clear">{_ Clear _}</button>
-	<button class="btn" id="location_reset">{_ Reset _}</button>
+	<button class="btn btn-default" id="location_me"><i class="icon-screenshot"></i> {_ Set to current location _}</button>
+	<button class="btn btn-default" id="location_address"><i class="icon-screenshot"></i> {_ Set to entered address _}</button>
+	<button class="btn btn-default" id="location_clear">{_ Clear _}</button>
+	<button class="btn btn-default" id="location_reset">{_ Reset _}</button>
 </div>
 
 <div id="{{ #geomap }}" class="admin-geomap map" style="height: 480px; margin-bottom:8px"></div>
