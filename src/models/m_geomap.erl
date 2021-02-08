@@ -137,7 +137,7 @@ set_countries_value(#{ <<"properties">> := Properties } = Feature, Data) ->
                 {ok, [ {_RscId, Title, Colour, Value} | _ ] = Cs} ->
                     Titles = [ T || {_, T, _, _} <- Cs ],
                     RscIds = [ Id || {Id, _, _, _} <- Cs ],
-                    Title = iolist_to_binary(z_utils:combine(<<"<br/>">>, Titles)),
+                    Title = iolist_to_binary(lists:join(<<"<br/>">>, Titles)),
                     Feature#{
                         <<"properties">> => #{
                             <<"rsc_ids">> => RscIds,

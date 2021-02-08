@@ -122,7 +122,7 @@ set_value({struct, Fs}, Data) ->
                     [{_RscId, _Title, Colour, Value}|_] = Cs,
                     Titles = [ element(2,C) || C <- Cs ],
                     RscIds = [ element(1,C) || C <- Cs ],
-                    Title = iolist_to_binary(z_utils:combine(<<"<br/>">>, Titles)),
+                    Title = iolist_to_binary(lists:join(<<"<br/>">>, Titles)),
                     {<<"properties">>,
                        {struct,[{<<"rsc_ids">>, RscIds},
                                 {<<"name">>, Title},
