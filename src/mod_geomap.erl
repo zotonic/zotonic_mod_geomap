@@ -131,47 +131,53 @@ observe_pivot_update(#pivot_update{}, KVs, _Context) ->
 %% @doc Check if the latitude/longitude are set, if so then pivot the pivot_geocode.
 %%      If not then try to derive the lat/long from the rsc's address data.
 observe_pivot_fields(#pivot_fields{ raw_props = R }, PivotFields, Context) ->
-    case {has_geoloc(R), has_pivot_geoloc(PivotFields)} of
-        {true, _} ->
-            % Directly derive from the hard coded location
-            Lat = z_convert:to_float(maps:get(<<"location_lat">>, R)),
-            Long = z_convert:to_float(maps:get(<<"location_lng">>, R)),
-            PivotFields#{
-                <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
-                <<"pivot_geocode_qhash">> => undefined,
-                <<"pivot_location_lat">> => Lat,
-                <<"pivot_location_lng">> => Long
-            };
-        {false, true} ->
-            % Some other module derived a pivot location - keep that location
-            Lat = z_convert:to_float(maps:get(<<"pivot_location_lat">>, R)),
-            Long = z_convert:to_float(maps:get(<<"pivot_location_lng">>, R)),
-            PivotFields#{
-                <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
-                <<"pivot_geocode_qhash">> => undefined
-            };
-        {false, false} ->
-            % Optionally geocode the address in the resource.
-            case optional_geocode(R, Context) of
-                reset ->
-                    PivotFields#{
-                        <<"pivot_geocode">> => undefined,
-                        <<"pivot_geocode_qhash">> => undefined,
-                        <<"pivot_location_lat">> => undefined,
-                        <<"pivot_location_lng">> => undefined
-                    };
-                {ok, Lat, Long, QHash} ->
-                    PivotFields#{
-                        <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
-                        <<"pivot_geocode_qhash">> => QHash,
-                        <<"pivot_location_lat">> => Lat,
-                        <<"pivot_location_lng">> => Long
-                    };
-                ok ->
-                    PivotFields
-            end
+    try
+        case {has_geoloc(R), has_pivot_geoloc(PivotFields)} of
+            {true, _} ->
+                % Directly derive from the hard coded location
+                Lat = z_convert:to_float(maps:get(<<"location_lat">>, R)),
+                Long = z_convert:to_float(maps:get(<<"location_lng">>, R)),
+                PivotFields#{
+                    <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
+                    <<"pivot_geocode_qhash">> => undefined,
+                    <<"pivot_location_lat">> => Lat,
+                    <<"pivot_location_lng">> => Long
+                };
+            {false, true} ->
+                % Some other module derived a pivot location - keep that location
+                Lat = z_convert:to_float(maps:get(<<"pivot_location_lat">>, R)),
+                Long = z_convert:to_float(maps:get(<<"pivot_location_lng">>, R)),
+                PivotFields#{
+                    <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
+                    <<"pivot_geocode_qhash">> => undefined
+                };
+            {false, false} ->
+                % Optionally geocode the address in the resource.
+                case optional_geocode(R, Context) of
+                    reset ->
+                        PivotFields#{
+                            <<"pivot_geocode">> => undefined,
+                            <<"pivot_geocode_qhash">> => undefined,
+                            <<"pivot_location_lat">> => undefined,
+                            <<"pivot_location_lng">> => undefined
+                        };
+                    {ok, Lat, Long, QHash} ->
+                        PivotFields#{
+                            <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
+                            <<"pivot_geocode_qhash">> => QHash,
+                            <<"pivot_location_lat">> => Lat,
+                            <<"pivot_location_lng">> => Long
+                        };
+                    ok ->
+                        PivotFields
+                end
+        end
+    catch
+        Type:Err:S ->
+            lager:error("Error in mod_geomap pivot of ~p: ~p:~p at ~p",
+                        [ R, Type, Err, S ]),
+            PivotFields
     end.
-
 
 has_geoloc(#{ <<"location_lat">> := Lat, <<"location_lng">> := Lng }) ->
     is_numerical(Lat) andalso is_numerical(Lng);
