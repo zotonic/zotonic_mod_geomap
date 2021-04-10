@@ -145,8 +145,8 @@ observe_pivot_fields(#pivot_fields{ raw_props = R }, PivotFields, Context) ->
                 };
             {false, true} ->
                 % Some other module derived a pivot location - keep that location
-                Lat = z_convert:to_float(maps:get(<<"pivot_location_lat">>, R)),
-                Long = z_convert:to_float(maps:get(<<"pivot_location_lng">>, R)),
+                Lat = z_convert:to_float(maps:get(<<"pivot_location_lat">>, PivotFields)),
+                Long = z_convert:to_float(maps:get(<<"pivot_location_lng">>, PivotFields)),
                 PivotFields#{
                     <<"pivot_geocode">> => geomap_quadtile:encode(Lat, Long),
                     <<"pivot_geocode_qhash">> => undefined
