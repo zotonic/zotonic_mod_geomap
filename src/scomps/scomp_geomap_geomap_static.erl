@@ -49,7 +49,8 @@ render(Params, _Vars, Context) ->
                         {location_lng, Longitude},
                         {tiles, Tiles},
                         {marker, {MarkerX,MarkerY}},
-                        {marker_px, {round(MarkerX*Size), round(MarkerY*Size)}}
+                        {marker_px, {round(MarkerX*Size), round(MarkerY*Size)}},
+                        {marker_perc, {(MarkerX / N) * 100, (MarkerY / N) * 100}}
                         | Params
                     ],
                     {Html, _Context} = z_template:render_to_iolist("_geomap_static.tpl", Vars, Context),
