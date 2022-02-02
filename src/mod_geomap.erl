@@ -174,7 +174,7 @@ observe_pivot_fields(#pivot_fields{ raw_props = R }, PivotFields, Context) ->
         end
     catch
         Type:Err:S ->
-            lager:error("Error in mod_geomap pivot of ~p: ~p:~p at ~p",
+            ?LOG_ERROR("Error in mod_geomap pivot of ~p: ~p:~p at ~p",
                         [ R, Type, Err, S ]),
             PivotFields
     end.
@@ -274,10 +274,10 @@ openstreetmap(Q, Context) ->
         {ok, []} ->
             {error, not_found};
         {ok, JSON} ->
-            lager:error("OpenStreetMap unknown JSON ~p on ~p", [JSON, Q]),
+            ?LOG_ERROR("OpenStreetMap unknown JSON ~p on ~p", [JSON, Q]),
             {error, unexpected_result};
         {error, Reason} = Error ->
-            lager:warning("OpenStreetMap returns ~p for ~p", [Reason, Q]),
+            ?LOG_WARNING("OpenStreetMap returns ~p for ~p", [Reason, Q]),
             Error
     end.
 
@@ -286,18 +286,18 @@ googlemaps_check(Q, Context) ->
         undefined ->
             case googlemaps(Q, Context) of
                 {error, ratelimit} = Error ->
-                    lager:warning("Geomap: Google reached query limit, disabling for 900 sec"),
+                    ?LOG_WARNING("Geomap: Google reached query limit, disabling for 900 sec"),
                     z_depcache:set(googlemaps_error, Error, 900, Context),
                     Error;
                 {error, denied} = Error ->
-                    lager:warning("Geomap: Google denied the request, disabling for 3600 sec"),
+                    ?LOG_WARNING("Geomap: Google denied the request, disabling for 3600 sec"),
                     z_depcache:set(googlemaps_error, Error, 3600, Context),
                     Error;
                 Result ->
                     Result
             end;
         {ok, Error} ->
-            lager:debug("Geomap: skipping Google lookup due to ~p", [Error]),
+            ?LOG_DEBUG("Geomap: skipping Google lookup due to ~p", [Error]),
             Error
     end.
 
@@ -320,7 +320,7 @@ googlemaps(ApiKey, Q, Context) ->
                 [ Result ] ->
                     case maps:get(<<"geometry">>, Result, null) of
                         null ->
-                            lager:info("Google maps result without geometry: ~p", [Props]),
+                            ?LOG_INFO("Google maps result without geometry: ~p", [Props]),
                             {error, no_result};
                         #{ <<"location">> := Ls } ->
                             case {z_convert:to_float(maps:get(<<"lat">>, Ls, undefined)),
@@ -332,31 +332,31 @@ googlemaps(ApiKey, Q, Context) ->
                                     {error, not_found}
                             end;
                         _ ->
-                            lager:info("Google maps geometry without location: ~p", [Props]),
+                            ?LOG_INFO("Google maps geometry without location: ~p", [Props]),
                             {error, no_result}
                     end;
                 [] ->
-                    lager:info("Google maps result without results: ~p", [Props]),
+                    ?LOG_INFO("Google maps result without results: ~p", [Props]),
                     {error, no_result}
             end;
         {ok, #{ <<"status">> := <<"ZERO_RESULTS">> } } ->
             {error, not_found};
         {ok, #{ <<"status">> := <<"OVER_QUERY_LIMIT">> } = Props } ->
-            lager:info("GoogleMaps api error: 'OVER_QUERY_LIMIT', message is ~p",
+            ?LOG_INFO("GoogleMaps api error: 'OVER_QUERY_LIMIT', message is ~p",
                        [ maps:get(<<"error_message">>, Props, <<>>) ]),
             {error, ratelimit};
         {ok, #{ <<"status">> := <<"REQUEST_DENIED">> } = Props } ->
-            lager:warning("GoogleMaps api error: 'REQUEST_DENIED', message is ~p",
+            ?LOG_WARNING("GoogleMaps api error: 'REQUEST_DENIED', message is ~p",
                           [ maps:get(<<"error_message">>, Props, <<>>) ]),
             {error, denied};
         {ok, #{ <<"status">> := Status } } ->
-            lager:warning("Google maps status ~p on ~p", [Status, Q]),
+            ?LOG_WARNING("Google maps status ~p on ~p", [Status, Q]),
             {error, unexpected_result};
         {ok, JSON} ->
-            lager:error("Google maps unknown JSON ~p on ~p", [JSON, Q]),
+            ?LOG_ERROR("Google maps unknown JSON ~p on ~p", [JSON, Q]),
             {error, unexpected_result};
         {error, Reason} = Error ->
-            lager:warning("Google maps returns ~p on ~p", [Reason, Q]),
+            ?LOG_WARNING("Google maps returns ~p on ~p", [Reason, Q]),
             Error
     end.
 
@@ -392,7 +392,7 @@ get_json(Url, Context) ->
         {ok, {{_, 404, _}, _, _}} ->
             {error, not_found};
         {ok, Other} ->
-            lager:warning("Unexpected result from ~p: ~p",
+            ?LOG_WARNING("Unexpected result from ~p: ~p",
                           [Url, Other]),
             {error, unexpected_result};
         {error, _Reason} = Err ->

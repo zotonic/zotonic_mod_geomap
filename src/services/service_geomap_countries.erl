@@ -95,7 +95,7 @@ set_value({struct, Fs}, Data) ->
     Name = proplists:get_value(<<"name">>, Properties),
     P1 = case l10n_country2iso:country2iso(Name) of
         undefined when Name =/= <<>> ->
-            lager:info("[mod_geomap] country ~p is unknown - not mapped to an iso code.", [Name]),
+            ?LOG_INFO("[mod_geomap] country ~p is unknown - not mapped to an iso code.", [Name]),
             {<<"properties">>,
                {struct,[{<<"name">>,Name},
                         {<<"value">>,<<"">>},

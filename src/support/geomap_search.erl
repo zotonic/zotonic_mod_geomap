@@ -45,7 +45,7 @@ search_query(#search_query{ search={geo_nearby, Args} }, Context) ->
                 tables = [ {rsc,"r"} ]
               };
         {error, _} = Error ->
-            lager:warning("Error in geo_nearby query ~p for ~p", [ Error, Args ]),
+            ?LOG_WARNING("Error in geo_nearby query ~p for ~p", [ Error, Args ]),
             undefined
     end;
 search_query(#search_query{}, _Context) ->
