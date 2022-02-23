@@ -33,10 +33,10 @@
     decode/1,
     decode/2,
 
+    fmod/2,
+
     test/0
 ]).
-
--include_lib("zotonic_core/include/zotonic.hrl").
 
 %% @doc Calculate a quadtile number in 64 bits (32 bits per coordinate)
 -spec encode(Latitude :: float(), Longitude :: float()) -> integer().
@@ -90,13 +90,12 @@ to_float(N, MaxAngle, Bits) ->
 
 
 %% @doc Ensure that the angle is between [-Max, Max>
-fmod(Angle, Max) when Angle < -Max ->
-    fmod(Angle+2.0*Max, Max);
-fmod(Angle, Max) when Angle >= Max ->
-    fmod(Angle-2.0*Max, Max);
-fmod(Angle, _Max) ->
-    Angle.
+fmod(Angle, Max) ->
+    norm(math:fmod(Angle, Max+Max), Max).
 
+norm(Angle, Max) when Angle < -Max -> Angle + Max + Max;
+norm(Angle, Max) when Angle >= Max -> Angle - Max - Max;
+norm(Angle, _) -> Angle.
 
 test() ->
     0 = geomap_quadtile:encode(-90, -180),
