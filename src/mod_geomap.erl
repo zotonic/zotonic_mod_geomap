@@ -1,8 +1,8 @@
 %% @author Marc Worrell <marc@worrell.nl>
-%% @copyright 2012-2019 Marc Worrell
+%% @copyright 2012-2022 Marc Worrell
 %% @doc Geo mapping support using OpenStreetMaps and GoogleMaps
 
-%% Copyright 2012-2019 Marc Worrell
+%% Copyright 2012-2022 Marc Worrell
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
 
     observe_postback_notify/2,
 
-    find_geocode/3,
-    find_geocode_api/3,
+    find_geocode/4,
+    find_geocode_api/4,
 
     openstreetmap/2,
     googlemaps/2
@@ -64,14 +64,15 @@ event(#postback_notify{ message = <<"geomap_popup">>, target = TargetId }, Conte
 %% @doc Handle an address lookup from the admin.
 event(#postback_notify{ message = <<"address_lookup">> }, Context) ->
     %% TODO: Maybe add check if the user is allowed to use the admin.
-    {ok, Type, Q} = q( #{
-            <<"address_street_1">> => z_context:get_q(<<"street">>, Context),
-            <<"address_city">> => z_context:get_q(<<"city">>, Context),
-            <<"address_state">> => z_context:get_q(<<"state">>, Context),
-            <<"address_postcode">> => z_context:get_q(<<"postcode">>, Context),
-            <<"address_country">> => z_context:get_q(<<"country">>, Context)
-        }, Context),
-    case find_geocode(Q, Type, Context) of
+    R = #{
+        <<"address_street_1">> => z_context:get_q(<<"street">>, Context),
+        <<"address_city">> => z_context:get_q(<<"city">>, Context),
+        <<"address_state">> => z_context:get_q(<<"state">>, Context),
+        <<"address_postcode">> => z_context:get_q(<<"postcode">>, Context),
+        <<"address_country">> => z_context:get_q(<<"country">>, Context)
+    },
+    {ok, Type, Q} = q(R, any, Context),
+    case find_geocode(Q, Type, R, Context) of
         {error, _} ->
             z_render:wire({script, [ {script, <<"map_mark_location_error();">>} ]}, Context);
         {ok, {Lat, Long}} ->
@@ -213,7 +214,7 @@ optional_geocode(R, Context) ->
         false ->
             reset;
         true ->
-            case q(R, Context) of
+            case q(R, all, Context) of
                 {ok, _, <<>>} ->
                     reset;
                 {ok, Type, Q} ->
@@ -224,7 +225,7 @@ optional_geocode(R, Context) ->
                             ok;
                         _ ->
                             % Changed, and we are doing automatic lookups
-                            case find_geocode(Q, Type, Context) of
+                            case find_geocode(Q, Type, R, Context) of
                                 {error, _} ->
                                     reset;
                                 {ok, {NewLat,NewLong}} ->
@@ -235,31 +236,34 @@ optional_geocode(R, Context) ->
     end.
 
 
-find_geocode(Q, Type, Context) ->
+find_geocode(Q, Type, R, Context) ->
     case geomap_precoded:find_geocode(Q, Type) of
         {ok, {_, _}} = OK ->
             OK;
         {error, not_found} ->
             Q1 = maybe_expand_country(Q, Type, Context),
-            find_geocode_api(Q1, Type, Context)
+            find_geocode_api(Q1, Type, R, Context)
     end.
 
 %% @doc Check with Google and OpenStreetMap if they know the address
 %% TODO: cache the lookup result (max 1 req/sec for Nominatim)
-find_geocode_api(<<>>, _Type, _Context) ->
+find_geocode_api(<<>>, _Type, _R, _Context) ->
     {error, not_found};
-find_geocode_api(Q, country, Context) ->
+find_geocode_api(Q, country, _R, Context) ->
     Qq = z_url:url_encode(Q),
     openstreetmap(Qq, Context);
-find_geocode_api(Q, _Type, Context) ->
+find_geocode_api(Q, _Type, R, Context) ->
     Qq = z_url:url_encode(Q),
     case googlemaps_check(Qq, Context) of
         {error, _} ->
-            openstreetmap(Qq, Context);
+            {ok, _, QOSM} = q(R, osm, Context),
+            openstreetmap(z_url:url_encode(QOSM), Context);
         {ok, {_Lat, _Long}} = Ok->
             Ok
     end.
 
+openstreetmap(<<>>, _Context) ->
+    {error, not_found};
 openstreetmap(Q, Context) ->
     Url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=0&q="
         ++ z_convert:to_list(Q),
@@ -301,6 +305,8 @@ googlemaps_check(Q, Context) ->
             Error
     end.
 
+googlemaps(<<>>, _Context) ->
+    {error, not_found};
 googlemaps(Q, Context) ->
     googlemaps(m_config:get_value(mod_geomap, google_api_key, Context), Q, Context).
 
@@ -400,7 +406,7 @@ get_json(Url, Context) ->
     end.
 
 
-q(R, Context) ->
+q(R, Service, Context) ->
     case iolist_to_binary(p(<<"address_country">>, <<>>, R)) of
         <<>> ->
             {ok, country, <<>>};
@@ -409,7 +415,14 @@ q(R, Context) ->
                 p(<<"address_street_1">>, $,, R),
                 p(<<"address_city">>, $,, R),
                 p(<<"address_state">>, $,, R),
-                remove_ws(p(<<"address_postcode">>, $,, R))
+                case Service of
+                    osm ->
+                        % The OSM postal code data is incomplete.
+                        % Adding a postal code can result in an empty result.
+                        <<>>;
+                    _ ->
+                        remove_ws(p(<<"address_postcode">>, $,, R))
+                end
             ]),
             case Fs of
                 <<>> ->
