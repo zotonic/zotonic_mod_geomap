@@ -45,7 +45,7 @@ zoom() ->
     ?ZOOM.
 
 %% @doc Return the {x,y,z} tuples for 3x3 map and the offset of the point from the upper-left tile.
--spec map_tiles(Latitude::float(), Longitude::float(), Cols::integer(), Rows::integer()) -> {ok,list(),{integer(),integer()}}.
+-spec map_tiles(Latitude::float(), Longitude::float(), Cols::integer(), Rows::integer()) -> {ok,list(),{float(),float()}}.
 map_tiles(Latitude, Longitude, Cols, Rows) ->
     map_tiles(Latitude, Longitude, Cols, Rows, ?ZOOM).
 

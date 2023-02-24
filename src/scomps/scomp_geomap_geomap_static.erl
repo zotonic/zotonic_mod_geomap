@@ -38,26 +38,22 @@ render(Params, _Vars, Context) ->
             Cols = z_convert:to_integer(proplists:get_value(cols, Params, N)),
             Rows = z_convert:to_integer(proplists:get_value(rows, Params, N)),
             Size = z_convert:to_integer(proplists:get_value(size, Params, ?TILE_SIZE)),
-            case geomap_tiles:map_tiles(Latitude, Longitude, Cols, Rows, Zoom) of
-                {ok, Tiles, {MarkerX,MarkerY}} ->
-                    Vars = [
-                        {n, N},
-                        {rows, Rows},
-                        {cols, Cols},
-                        {size, Size},
-                        {location_lat, Latitude},
-                        {location_lng, Longitude},
-                        {tiles, Tiles},
-                        {marker, {MarkerX,MarkerY}},
-                        {marker_px, {round(MarkerX*Size), round(MarkerY*Size)}},
-                        {marker_perc, {(MarkerX / N) * 100, (MarkerY / N) * 100}}
-                        | Params
-                    ],
-                    {Html, _Context} = z_template:render_to_iolist("_geomap_static.tpl", Vars, Context),
-                    {ok, Html};
-                _ ->
-                    {ok, <<>>}
-            end;
+            {ok, Tiles, {MarkerX,MarkerY}} = geomap_tiles:map_tiles(Latitude, Longitude, Cols, Rows, Zoom),
+            Vars = [
+                {n, N},
+                {rows, Rows},
+                {cols, Cols},
+                {size, Size},
+                {location_lat, Latitude},
+                {location_lng, Longitude},
+                {tiles, Tiles},
+                {marker, {MarkerX,MarkerY}},
+                {marker_px, {round(MarkerX*Size), round(MarkerY*Size)}},
+                {marker_perc, {(MarkerX / N) * 100, (MarkerY / N) * 100}}
+                | Params
+            ],
+            {Html, _Context} = z_template:render_to_iolist("_geomap_static.tpl", Vars, Context),
+            {ok, Html};
         _ ->
             {ok, <<>>}
     end.
