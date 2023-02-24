@@ -98,10 +98,10 @@ norm(Angle, Max) when Angle >= Max -> Angle - Max - Max;
 norm(Angle, _) -> Angle.
 
 test() ->
-    0 = geomap_quadtile:encode(-90, -180),
-    0 = geomap_quadtile:encode(90, 180),
+    0 = geomap_quadtile:encode(-90.0, -180.0),
+    0 = geomap_quadtile:encode(90.0, 180.0),
     {-90.0,-180.0} = geomap_quadtile:decode(0),
-    {1.0, 2.0} = geomap_quadtile:decode(geomap_quadtile:encode(1,2)),
+    {1.0, 2.0} = geomap_quadtile:decode(geomap_quadtile:encode(1.0, 2.0)),
     % Below is close to (1 bsl (?BITS*2))-1 = 4611686018427387903
     4611686018427387900 = geomap_quadtile:encode(89.9999999, 179.9999999),
     {90.0, 180.0} = geomap_quadtile:decode(4611686018427387900),

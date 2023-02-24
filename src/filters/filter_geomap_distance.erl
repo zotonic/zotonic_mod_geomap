@@ -40,7 +40,7 @@ geomap_distance(LocA, LocB, Context) ->
             undefined
     end.
 
-get_loc(Id, Context) when is_integer(Id), is_atom(Id), is_binary(Id) ->
+get_loc(Id, Context) when is_integer(Id); is_atom(Id); is_binary(Id) ->
     case m_rsc:rid(Id, Context) of
         undefined ->
             {error, nolocation};
