@@ -4,7 +4,7 @@
 {% with m.rsc[id].computed_location_lng as longitude %}
 <div class="row">
     <div class="form-group col-md-4 label-floating">
-		<input id="location_lat" type="text" name="location_lat" value="{{ m.rsc[id].location_lat }}" class="form-control" placeholder="{_ Latitude _}" pattern="^\s*[0-9]+(\.[0-9]+)?\s*$">
+		<input id="location_lat" type="text" name="location_lat" value="{{ m.rsc[id].location_lat }}" class="form-control" placeholder="{_ Latitude _}" pattern="^\s*[\\+\\-]?[0-9]+(\.[0-9]+)?\s*$">
         <label for="location_lat" class="control-label">{_ Latitude _}</label>
         {% if id %}
             <span class="text-muted">{_ indexed _}: {{ latitude|default:"-" }}</span>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="form-group col-md-4 label-floating">
-		<input id="location_lng" type="text" name="location_lng" value="{{ m.rsc[id].location_lng }}" class="form-control" placeholder="{_ Longitude _}" pattern="^\s*[0-9]+(\.[0-9]+)?\s*$">
+		<input id="location_lng" type="text" name="location_lng" value="{{ m.rsc[id].location_lng }}" class="form-control" placeholder="{_ Longitude _}" pattern="^\s*[\\+\\-]?[0-9]+(\.[0-9]+)?\s*$">
         <label for="location_lng" class="control-label">{_ Longitude _}</label>
         {% if id %}
     		<span class="text-muted">{_ indexed _}: {{ longitude|default:"-" }}</span>
