@@ -2,7 +2,7 @@
     {description, "Maps, mapping, geocoding and geo calculations."},
     {vsn, "git"},
     {registered, []},
-    {applications, [kernel, stdlib, zotonic_core, zotonic_apps]},
+    {applications, [kernel, stdlib, zotonic_core]},
     {env, []},
     {modules, []},
     {maintainers, []},
