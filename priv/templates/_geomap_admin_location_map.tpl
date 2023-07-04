@@ -62,13 +62,13 @@ setTimeout(function() {
         var map_zoom = parseFloat("{{ m.rsc[id].location_zoom_level|default:15 }}");
     {% else %}
         var map_location = [
-            parseFloat("{{ m.config.mod_geomap.location_lng.value|default:0 }}"),
-            parseFloat("{{ m.config.mod_geomap.location_lat.value|default:0 }}")
+            parseFloat("{{ m.geomap.location_lng|default:0 }}"),
+            parseFloat("{{ m.geomap.location_lat|default:0 }}")
         ];
         var has_pin = false
         {% if id.location_zoom_level as zoom %}
             var map_zoom = parseFloat("{{ zoom }}");
-        {% elseif m.config.mod_geomap.zoomlevel.value as zoom %}
+        {% elseif m.geomap.zoomlevel as zoom %}
             var map_zoom = parseFloat("{{ zoom }}");
         {% else %}
             var map_zoom = parseFloat("2");

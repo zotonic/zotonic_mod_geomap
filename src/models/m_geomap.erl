@@ -1,8 +1,8 @@
 %% @author Marc Worrell <marc@worrell.nl>
-%% @copyright 2012-2020 Marc Worrell
-%% @doc GeoMap model, expose functions as an API
+%% @copyright 2012-2023 Marc Worrell
+%% @doc GeoMap model, expose functions and configurations as an API.
 
-%% Copyright 2012-2020 Marc Worrell
+%% Copyright 2012-2023 Marc Worrell
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -32,6 +32,16 @@ m_get([ <<"locations">> | Rest ], _Msg, Context) ->
     {ok, {get_locations(Context), Rest}};
 m_get([ <<"nearby">> | Rest ], _Msg, Context) ->
     {ok, {get_nearby(Context), Rest}};
+m_get([ <<"location_lng">> | Rest ], _Msg, Context) ->
+    {ok, {m_config:get_value(mod_geomap, location_lng, Context), Rest}};
+m_get([ <<"location_lat">> | Rest ], _Msg, Context) ->
+    {ok, {m_config:get_value(mod_geomap, location_lat, Context), Rest}};
+m_get([ <<"zoomlevel">> | Rest ], _Msg, Context) ->
+    {ok, {m_config:get_value(mod_geomap, zoomlevel, Context), Rest}};
+m_get([ <<"provider">> | Rest ], _Msg, Context) ->
+    {ok, {m_config:get_value(mod_geomap, provider, Context), Rest}};
+m_get([ <<"google_api_key">> | Rest ], _Msg, Context) ->
+    {ok, {m_config:get_value(mod_geomap, google_api_key, Context), Rest}};
 m_get(_Vs, _Msg, _Context) ->
     {error, unknown_path}.
 

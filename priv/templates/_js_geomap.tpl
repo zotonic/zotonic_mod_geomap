@@ -1,7 +1,7 @@
 {# JS files for maps #}
 
-{% if m.config.mod_geomap.provider.value == 'googlemaps' %}
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ m.config.mod_geomap.google_api_key.value|escape }}&amp;libraries=places&amp;language={{ z_language }}&amp;v=3"></script>
+{% if m.geomap.provider == 'googlemaps' %}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ m.geomap.google_api_key|escape }}&amp;libraries=places&amp;language={{ z_language }}&amp;v=3"></script>
     {% lib
         "js/googlemaps/markerclusterer.js"
         "js/googlemaps/z.geomap.js"
