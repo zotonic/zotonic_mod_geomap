@@ -28,10 +28,12 @@
     event/2,
 
     observe_rsc_get/3,
+
     observe_search_query/2,
+    observe_search_query_term/2,
+
     observe_pivot_update/3,
     observe_pivot_fields/3,
-
     observe_postback_notify/2,
 
     find_geocode/4,
@@ -104,6 +106,28 @@ observe_rsc_get(#rsc_get{}, Props, _Context) ->
 
 observe_search_query(#search_query{}=Q, Context) ->
     geomap_search:search_query(Q, Context).
+
+observe_search_query_term(#search_query_term{ term = <<"has_geo">>, arg = Arg }, _Context) ->
+    case z_convert:to_bool(Arg) of
+        true ->
+            #search_sql_term{
+                where = [
+                    <<
+                        "(rsc.pivot_location_lat is not null ",
+                        "and rsc.pivot_location_lng is not null)"
+                    >>
+                ]
+            };
+        false ->
+            #search_sql_term{
+                where = [
+                    <<
+                        "(rsc.pivot_location_lat is null ",
+                        "or rsc.pivot_location_lng is null)"
+                    >>
+                ]
+            }
+    end.
 
 %% @doc Check if the latitude/longitude are set, if so the pivot the pivot_geocode.
 %%      If not then try to derive the lat/long from the rsc's address data.
