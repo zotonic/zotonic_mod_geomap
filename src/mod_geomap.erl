@@ -127,7 +127,9 @@ observe_search_query_term(#search_query_term{ term = <<"has_geo">>, arg = Arg },
                     >>
                 ]
             }
-    end.
+    end;
+observe_search_query_term(#search_query_term{}, _Context) ->
+    undefined.
 
 %% @doc Check if the latitude/longitude are set, if so the pivot the pivot_geocode.
 %%      If not then try to derive the lat/long from the rsc's address data.
