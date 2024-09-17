@@ -4,7 +4,7 @@
 
 {% block html_head_extra %}
     {% lib "css/ol.css" %}
-    <style type="text/css">
+    <style type="text/css" nonce="{{ m.req.csp_nonce }}">
         div#map {
             height: 100%;
             width: 100%;
