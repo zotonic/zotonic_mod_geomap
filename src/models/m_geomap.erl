@@ -108,7 +108,9 @@ get_countries(Context) ->
 get_country_coords(Context) ->
     JsonFile = filename:join([ z_path:site_dir(Context), "data", "internet_users_2005_choropleth_lowres.json" ]),
     {ok, Data} = file:read_file(JsonFile),
-    jsx:decode(Data).
+    case jsx:decode(Data) of
+        #{} = Coords -> Coords
+    end.
 
 
 set_countries_values(#{ <<"type">> := <<"FeatureCollection">>, <<"features">> := Cs } = Map, Data) ->
