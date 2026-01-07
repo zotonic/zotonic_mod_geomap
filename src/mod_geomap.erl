@@ -1,8 +1,9 @@
 %% @author Marc Worrell <marc@worrell.nl>
-%% @copyright 2012-2022 Marc Worrell
+%% @copyright 2012-2025 Marc Worrell
 %% @doc Geo mapping support using OpenStreetMaps and GoogleMaps
+%% @end
 
-%% Copyright 2012-2022 Marc Worrell
+%% Copyright 2012-2025 Marc Worrell
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -23,6 +24,16 @@
 -mod_description("Maps, mapping, geocoding and geo calculations.").
 -mod_prio(520).
 -mod_depends([mod_l10n]).
+
+-mod_config([
+    #{
+        key => google_api_key,
+        type => string,
+        default => undefined,
+        description => "Google Maps API key for geocoding service."
+    }
+]).
+
 
 -export([
     event/2,
@@ -157,7 +168,7 @@ observe_pivot_update(#pivot_update{}, KVs, _Context) ->
 
 %% @doc Check if the latitude/longitude are set, if so then pivot the pivot_geocode.
 %%      If not then try to derive the lat/long from the rsc's address data.
-observe_pivot_fields(#pivot_fields{ raw_props = R }, PivotFields, Context) ->
+observe_pivot_fields(#pivot_fields{ id = Id, raw_props = R }, PivotFields, Context) ->
     try
         case {has_geoloc(R), has_pivot_geoloc(PivotFields)} of
             {true, _} ->
@@ -200,9 +211,15 @@ observe_pivot_fields(#pivot_fields{ raw_props = R }, PivotFields, Context) ->
                 end
         end
     catch
-        Type:Err:S ->
-            ?LOG_ERROR("Error in mod_geomap pivot of ~p: ~p:~p at ~p",
-                        [ R, Type, Err, S ]),
+        _Type:Err:S ->
+            ?LOG_ERROR(#{
+                in => zotonic_mod_geomap,
+                text => <<"Error in mod_geomap pivot">>,
+                result => error,
+                reason => Err,
+                id => Id,
+                stack => S
+            }),
             PivotFields
     end.
 
@@ -304,10 +321,23 @@ openstreetmap(Q, Context) ->
         {ok, []} ->
             {error, not_found};
         {ok, JSON} ->
-            ?LOG_ERROR("OpenStreetMap unknown JSON ~p on ~p", [JSON, Q]),
+            ?LOG_ERROR(#{
+                in => zotonic_mod_geomap,
+                text => <<"OpenStreetMap unknown JSON result">>,
+                result => error,
+                reason => unexpected_result,
+                json => JSON,
+                q => Q
+            }),
             {error, unexpected_result};
         {error, Reason} = Error ->
-            ?LOG_WARNING("OpenStreetMap returns ~p for ~p", [Reason, Q]),
+            ?LOG_WARNING(#{
+                in => zotonic_mod_geomap,
+                text => <<"OpenStreetMap error">>,
+                result => error,
+                reason => Reason,
+                q => Q
+            }),
             Error
     end.
 
@@ -316,18 +346,33 @@ googlemaps_check(Q, Context) ->
         undefined ->
             case googlemaps(Q, Context) of
                 {error, ratelimit} = Error ->
-                    ?LOG_WARNING("Geomap: Google reached query limit, disabling for 900 sec"),
+                    ?LOG_WARNING(#{
+                        in => zotonic_mod_geomap,
+                        text => <<"Geomap: Google reached query limit, disabling for 900 sec">>,
+                        result => error,
+                        reason => ratelimit
+                    }),
                     z_depcache:set(googlemaps_error, Error, 900, Context),
                     Error;
                 {error, denied} = Error ->
-                    ?LOG_WARNING("Geomap: Google denied the request, disabling for 3600 sec"),
-                    z_depcache:set(googlemaps_error, Error, 3600, Context),
+                    ?LOG_WARNING(#{
+                        in => zotonic_mod_geomap,
+                        text => <<"Geomap: Google denied the request, disabling for 3600 se">>,
+                        result => error,
+                        reason => denied
+                    }),
                     Error;
                 Result ->
                     Result
             end;
         {ok, Error} ->
-            ?LOG_DEBUG("Geomap: skipping Google lookup due to ~p", [Error]),
+            ?LOG_DEBUG(#{
+                in => zotonic_mod_geomap,
+                text => <<"Geomap: skipping Google lookup due to googlemaps error">>,
+                reason => error,
+                result => Error,
+                query => Q
+            }),
             Error
     end.
 
@@ -352,7 +397,13 @@ googlemaps(ApiKey, Q, Context) ->
                 [ Result ] ->
                     case maps:get(<<"geometry">>, Result, null) of
                         null ->
-                            ?LOG_INFO("Google maps result without geometry: ~p", [Props]),
+                            ?LOG_INFO(#{
+                                in => zotonic_mod_geomap,
+                                text => <<"Google maps result without geometry">>,
+                                result => error,
+                                reason => geometry,
+                                props => Props
+                            }),
                             {error, no_result};
                         #{ <<"location">> := Ls } ->
                             case {z_convert:to_float(maps:get(<<"lat">>, Ls, undefined)),
@@ -364,31 +415,76 @@ googlemaps(ApiKey, Q, Context) ->
                                     {error, not_found}
                             end;
                         _ ->
-                            ?LOG_INFO("Google maps geometry without location: ~p", [Props]),
+                            ?LOG_INFO(#{
+                                in => zotonic_mod_geomap,
+                                text => <<"Google maps geometry without location">>,
+                                result => error,
+                                reason => no_location,
+                                props => Props
+                            }),
                             {error, no_result}
                     end;
                 [] ->
-                    ?LOG_INFO("Google maps result without results: ~p", [Props]),
+                    ?LOG_INFO(#{
+                        in => zotonic_mod_geomap,
+                        text => <<"Google maps geometry without results">>,
+                        result => error,
+                        reason => no_result,
+                        props => Props
+                    }),
                     {error, no_result}
             end;
         {ok, #{ <<"status">> := <<"ZERO_RESULTS">> } } ->
             {error, not_found};
         {ok, #{ <<"status">> := <<"OVER_QUERY_LIMIT">> } = Props } ->
-            ?LOG_INFO("GoogleMaps api error: 'OVER_QUERY_LIMIT', message is ~p",
-                       [ maps:get(<<"error_message">>, Props, <<>>) ]),
+            ?LOG_INFO(#{
+                in => zotonic_mod_geomap,
+                text => <<"GoogleMaps api error: 'OVER_QUERY_LIMIT'">>,
+                result => error,
+                reason => ratelimit,
+                message => maps:get(<<"error_message">>, Props, <<>>),
+                q => Q
+            }),
             {error, ratelimit};
         {ok, #{ <<"status">> := <<"REQUEST_DENIED">> } = Props } ->
-            ?LOG_WARNING("GoogleMaps api error: 'REQUEST_DENIED', message is ~p",
-                          [ maps:get(<<"error_message">>, Props, <<>>) ]),
+            ?LOG_WARNING(#{
+                in => zotonic_mod_geomap,
+                text => <<"GoogleMaps api error: 'REQUEST_DENIED'">>,
+                result => error,
+                reason => denied,
+                message => maps:get(<<"error_message">>, Props, <<>>),
+                q => Q
+            }),
             {error, denied};
-        {ok, #{ <<"status">> := Status } } ->
-            ?LOG_WARNING("Google maps status ~p on ~p", [Status, Q]),
+        {ok, #{ <<"status">> := Status } = Props } ->
+            ?LOG_WARNING(#{
+                in => zotonic_mod_geomap,
+                text => <<"GoogleMaps api error with unexpected status'">>,
+                result => error,
+                reason => unexpected_result,
+                status => Status,
+                message => maps:get(<<"error_message">>, Props, <<>>),
+                q => Q
+            }),
             {error, unexpected_result};
         {ok, JSON} ->
-            ?LOG_ERROR("Google maps unknown JSON ~p on ~p", [JSON, Q]),
+            ?LOG_ERROR(#{
+                in => zotonic_mod_geomap,
+                text => <<"GoogleMaps api error with unknown JSON">>,
+                result => error,
+                reason => unexpected_result,
+                json => JSON,
+                q => Q
+            }),
             {error, unexpected_result};
         {error, Reason} = Error ->
-            ?LOG_WARNING("Google maps returns ~p on ~p", [Reason, Q]),
+            ?LOG_ERROR(#{
+                in => zotonic_mod_geomap,
+                text => <<"GoogleMaps api error with error">>,
+                result => error,
+                reason => Reason,
+                q => Q
+            }),
             Error
     end.
 
@@ -424,8 +520,14 @@ get_json(Url, Context) ->
         {ok, {{_, 404, _}, _, _}} ->
             {error, not_found};
         {ok, Other} ->
-            ?LOG_WARNING("Unexpected result from ~p: ~p",
-                          [Url, Other]),
+            ?LOG_WARNING(#{
+                in => zotonic_mod_geomap,
+                text => <<"HTTP request returned unexpected result">>,
+                result => error,
+                reason => unexpected_result,
+                url => Url,
+                response => Other
+            }),
             {error, unexpected_result};
         {error, _Reason} = Err ->
             Err
