@@ -1,8 +1,9 @@
 %% @author Arjan Scherpenisse <arjan@miraclethings.nl>
-%% @copyright 2014 Arjan Scherpenisse
+%% @copyright 2014-2025 Arjan Scherpenisse
 %% @doc Geo search functions
+%% @end
 
-%% Copyright 2014 Arjan Scherpenisse
+%% Copyright 2014-2025 Arjan Scherpenisse
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -18,60 +19,93 @@
 
 -module(geomap_search).
 
--export([search_query/2, get_query_center/2]).
+-export([search_query/2]).
 
 -include_lib("zotonic_core/include/zotonic.hrl").
 
--define(PI, 3.141592653589793).
+% -define(PI, 3.141592653589793).
 
 %% @doc Geo-related searches
+search_query(#search_query{
+            name = <<"geo_nearby">>,
+            args = #{
+                <<"q">> := Terms
+            }
+        }, Context) ->
+    Cat = term(<<"cat">>, Terms, []),
+    Distance = term(<<"distance">>, Terms, 10),
+    Lat = term(<<"latitude">>, Terms, undefined),
+    Lng = term(<<"longitude">>, Terms, undefined),
+    Id = term(<<"id">>, Terms, undefined),
+    query(Cat, Distance, Lat, Lng, Id, Context);
 search_query(#search_query{ search={geo_nearby, Args} }, Context) ->
-    Cats = case proplists:get_all_values(cat, Args) of
-        [] -> [];
-        Cs -> [{"r", lists:flatten(Cs)}]
-    end,
+    % Old search format
+    Cats = proplists:get_all_values(cat, Args),
     Distance = z_convert:to_float(proplists:get_value(distance, Args, 10)),
-    case get_query_center(Args, Context) of
-        {ok, {Lat, Lng}} ->
-            {LatMin, LngMin, LatMax, LngMax} = geomap_calculations:get_lat_lng_bounds(Lat, Lng, Distance),
+    Lat = proplists:get_value(latitude, Args),
+    Lng = proplists:get_value(longitude, Args),
+    Id = proplists:get_value(id, Args),
+    query(Cats, Distance, Lat, Lng, Id, Context);
+search_query(_Q, _Context) ->
+    undefined. %% fall through
 
+term(_Name, [], Default) ->
+    Default;
+term(Name, [#{ <<"term">> := T, <<"value">> := V } | _ ], _Default) when T =:= Name ->
+    V;
+term(Name, [_|Ts], Default) ->
+    term(Name, Ts, Default).
+
+
+query(undefined, Distance, Lat, Lng, Id, Context) ->
+    query([], Distance, Lat, Lng, Id, Context);
+query(Cat, Distance, Lat, Lng, Id, Context) ->
+    Args1 = if
+        Cat =:= [] -> [];
+        Cat =:= undefined -> [];
+        is_list(Cat) -> [{"r", Cat}];
+        true -> [{"r", [Cat]}]
+    end,
+    case get_query_center(Lat, Lng, Id, Context) of
+        {ok, {LatC, LngC}} ->
+            {LatMin, LngMin, LatMax, LngMax} = geomap_calculations:get_lat_lng_bounds(LatC, LngC, Distance),
             #search_sql{
                 select = "r.id",
                 from = "rsc r",
                 where = "$1 < pivot_location_lat AND $2 < pivot_location_lng AND pivot_location_lat < $3 AND pivot_location_lng < $4",
-                cats = Cats,
+                cats = Args1,
                 order = "(pivot_location_lat-$5)*(pivot_location_lat-$5) + (pivot_location_lng-$6)*(pivot_location_lng-$6), id",
-                args = [ LatMin, LngMin, LatMax, LngMax, Lat, Lng ],
+                args = [ LatMin, LngMin, LatMax, LngMax, LatC, LngC ],
                 tables = [ {rsc,"r"} ]
               };
-        {error, _} = Error ->
-            ?LOG_WARNING("Error in geo_nearby query ~p for ~p", [ Error, Args ]),
+        {error, Reason} ->
+            ?LOG_WARNING(#{
+                in => zotonic_mod_geomap,
+                text => <<"Error in geo_nearby query">>,
+                result => error,
+                reason => Reason,
+                cat => Cat,
+                distance => Distance,
+                latitude => Lat,
+                longitude => Lng,
+                id => Id
+            }),
             undefined
+    end.
+
+get_query_center(undefined, undefined, undefined, _Context) ->
+    {error, missing_geo_search_parameters};
+get_query_center(Lat, Lng, _Id, _Context) when Lat =/= undefined; Lng =/= undefined ->
+    try
+        {ok, {z_convert:to_float(Lat), z_convert:to_float(Lng)}}
+    catch
+        _:_ ->
+            {error, not_floats}
     end;
-search_query(#search_query{}, _Context) ->
-    undefined. %% fall through
-
-
-get_query_center(Args, Context) ->
-    case {proplists:get_value(latitude, Args), proplists:get_value(longitude, Args)} of
-        {undefined, undefined} ->
-            case proplists:get_value(id, Args) of
-                undefined ->
-                    {error, missing_geo_search_parameters};
-                Id0 ->
-                    Id = m_rsc:rid(Id0, Context),
-                    case {m_rsc:p(Id, location_lat, Context), m_rsc:p(Id, location_lng, Context)} of
-                        {Lat, Lng} when is_float(Lat), is_float(Lng) ->
-                            {ok, {Lat, Lng}};
-                        _ ->
-                            {error, {rsc_without_location, Id}}
-                    end
-            end;
-        {Lat, Lng} ->
-            try
-                {ok, {z_convert:to_float(Lat), z_convert:to_float(Lng)}}
-            catch
-                _:_ ->
-                    {error, not_floats}
-            end
+get_query_center(_Lat, _Lng, Id, Context) ->
+    Lat = m_rsc:p(Id, <<"pivot_location_lat">>, Context),
+    Lng = m_rsc:p(Id, <<"pivot_location_lng">>, Context),
+    if
+        is_float(Lat), is_float(Lng) -> {ok, {Lat, Lng}};
+        true -> {error, rsc_without_location}
     end.
