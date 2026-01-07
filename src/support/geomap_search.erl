@@ -23,7 +23,7 @@
 
 -include_lib("zotonic_core/include/zotonic.hrl").
 
-% -define(PI, 3.141592653589793).
+-define(DEFAULT_DISTANCE, 10.0).
 
 %% @doc Geo-related searches
 search_query(#search_query{
@@ -33,7 +33,7 @@ search_query(#search_query{
             }
         }, Context) ->
     Cat = term(<<"cat">>, Terms, []),
-    Distance = term(<<"distance">>, Terms, 10),
+    Distance = z_convert:to_float(term(<<"distance">>, Terms, ?DEFAULT_DISTANCE)),
     Lat = term(<<"latitude">>, Terms, undefined),
     Lng = term(<<"longitude">>, Terms, undefined),
     Id = term(<<"id">>, Terms, undefined),
@@ -41,7 +41,7 @@ search_query(#search_query{
 search_query(#search_query{ search={geo_nearby, Args} }, Context) ->
     % Old search format
     Cats = proplists:get_all_values(cat, Args),
-    Distance = z_convert:to_float(proplists:get_value(distance, Args, 10)),
+    Distance = z_convert:to_float(proplists:get_value(distance, Args, ?DEFAULT_DISTANCE)),
     Lat = proplists:get_value(latitude, Args),
     Lng = proplists:get_value(longitude, Args),
     Id = proplists:get_value(id, Args),
