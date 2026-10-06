@@ -16,6 +16,7 @@ Configuration
 
 This modules has the following configuration keys:
 
+ * `mod_geomap.is_auto_geocode` Automatically geocode resource addresses using external services (default `true`). Set to `false` to disable automatic Google Maps/Nominatim requests. Existing coordinates and local precoded lookups are retained; manual address lookups remain available.
  * `mod_geomap.provider` Either `openlayers` (default) or `googlemaps`
  * `mod_geomap.google_api_key` The API Key for Google Maps requests
  * `mod_geomap.location_lat` Default latitude for map views

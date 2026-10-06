@@ -17,6 +17,45 @@
 %% limitations under the License.
 
 -module(scomp_geomap_geomap_static).
+-moduledoc(#{
+    zotonic_keywords => [
+        "reference", "frontend_developer", "scomp", "geolocation", "template"
+    ]
+}).
+-moduledoc("
+Render a static OpenStreetMap tile grid with a marker at a location.
+
+```django
+{% geomap_static latitude=52.34322 longitude=4.33423 zoom=14 %}
+```
+
+Alternatively, use a resource's computed coordinates:
+
+```django
+{% geomap_static id=id %}
+```
+
+| Argument | Description | Default |
+| --- | --- | --- |
+| `latitude`, `longitude` | Explicit center coordinates in degrees. | Resource coordinates when `latitude` is absent. |
+| `id` | Resource with `computed_location_lat` and `computed_location_lng`. | None. |
+| `zoom` | Tile zoom level. | `14` |
+| `n` | Default number of rows and columns. | `2` |
+| `rows` | Number of tile rows. | `n` |
+| `cols` | Number of tile columns. | `n` |
+| `size` | Display size of each tile in pixels. | `256` |
+
+When explicit latitude is present, both explicit coordinates are used; a missing
+longitude does not fall back to the resource. A resource need not belong to a
+particular category, but must supply usable computed coordinates. The tag emits
+an empty result when it cannot resolve a pair of floating-point coordinates.
+
+The component renders `_geomap_static.tpl` with tile coordinates, center
+coordinates, grid dimensions, and marker offsets. The default template loads
+tiles from `https://tile.openstreetmap.org` and displays a marker. Override it in
+the site to customize presentation. The component declares `nocache` and does
+not generate or store a combined map image.
+").
 -author('Marc Worrell <marc@worrell.nl>').
 -behaviour(zotonic_scomp).
 

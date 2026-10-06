@@ -17,6 +17,56 @@
 %% limitations under the License.
 
 -module(m_geomap).
+-moduledoc(#{
+    zotonic_keywords => [
+        "reference", "backend_developer", "model", "geolocation", "configuration",
+        "api_and_integration"
+    ]
+}).
+-moduledoc("
+Expose GeoMap configuration and country-map data to templates and model GET
+requests.
+
+## Model paths
+
+| Path | Result |
+| --- | --- |
+| `provider` | Configured map provider. |
+| `google_api_key` | Configured Google Maps API key. |
+| `location_lat` | Configured initial latitude. |
+| `location_lng` | Configured initial longitude. |
+| `zoomlevel` | Configured initial zoom. |
+| `countries` | Country GeoJSON enriched with visible country resources. |
+| `nearby` | Empty map; resource lookup is not implemented on this path. |
+| `locations` | Empty map; resource lookup is not implemented on this path. |
+
+Configuration reads return the stored `mod_geomap` value without a model-level
+fallback. Templates choose their own defaults, for example:
+
+```django
+{{ m.geomap.location_lat|default:0 }}
+```
+
+These reads have no administrator-only ACL check, including `google_api_key`.
+Unknown paths return `{error, unknown_path}`. GET model callbacks return
+`{ok, {Value, Rest}}`, retaining unused path segments.
+
+## Country data
+
+`countries` reads `data/internet_users_2005_choropleth_lowres.json` from the site
+directory. The file must exist and decode to a GeoJSON map. It is not read from
+the module's `priv/data` directory.
+
+The model searches up to 1,000 resources in category `country`, checks their
+visibility, and groups them by `address_country`. It combines their IDs and
+titles with `map_color` and `map_value` for matching country features. Missing
+colors default to `#ccc`, and missing values to an empty binary. If the category
+does not exist, no resource values are added. Sint Maarten's `sx` country code
+is grouped with Saint Martin's `mf` geometry.
+
+For nearby resource queries, use the `geo_nearby` search supplied by `mod_geomap`;
+the `nearby` and `locations` model paths do not implement that search.
+").
 
 -behaviour(zotonic_model).
 

@@ -1,4 +1,35 @@
 -module(filter_geomap_distance).
+-moduledoc(#{
+    zotonic_keywords => [
+        "reference", "frontend_developer", "template_filter", "geolocation", "number"
+    ]
+}).
+-moduledoc("
+Calculate the great-circle distance between two locations in kilometers.
+
+Use resource IDs or names for both locations:
+
+```django
+{{ id|geomap_distance:other_id }}
+```
+
+Or supply the destination latitude and longitude as separate arguments:
+
+```django
+{{ id|geomap_distance:52.34322:4.33423 }}
+```
+
+A location can also be a map with numeric binary-keyed pairs `lat`/`lng`,
+`location_lat`/`location_lng`, or `computed_location_lat`/`computed_location_lng`.
+Resource references use their computed location properties. Coordinates are
+in degrees; this is geographic distance, not a road or travel distance.
+
+The Erlang entry points are `geomap_distance/3` for two locations and
+`geomap_distance/4` for a location plus latitude and longitude. The separate
+coordinate arguments are converted to floats when necessary. Undefined inputs,
+unknown resources, missing coordinates, or unconvertible destination arguments
+return `undefined`.
+").
 
 -export([
     geomap_distance/3,

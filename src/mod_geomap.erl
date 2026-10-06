@@ -18,6 +18,179 @@
 %% limitations under the License.
 
 -module(mod_geomap).
+-moduledoc(#{
+    zotonic_keywords => [
+        "reference", "site_administrator", "module", "geolocation", "search_and_discovery",
+        "configuration", "api_and_integration"
+    ]
+}).
+-moduledoc("
+Add resource locations, map display, geocoding, and geographic searches to
+Zotonic. Enable `mod_geomap` on the site; it depends on `mod_l10n`.
+
+## Resource locations
+
+The admin location editor stores `location_lat`, `location_lng`, and
+`location_zoom_level`. Coordinates are latitude and longitude in degrees.
+Resource pivoting updates `pivot_location_lat`, `pivot_location_lng`, and the
+quadtile `pivot_geocode`. Explicit coordinates take precedence over a location
+derived from address fields. An already supplied pivot location is retained
+when no explicit coordinates are present.
+
+Resource reads expose `computed_location_lat` and `computed_location_lng` from
+the quadtile, or from numeric explicit coordinates when no quadtile is available.
+Use these computed properties for map display and the `geomap_distance` filter.
+
+Address geocoding uses the resource's street, city, state, postcode, and country.
+Full address lookups try Google Maps and fall back to OpenStreetMap Nominatim;
+country lookups can use the module's precoded country coordinates. Address
+lookup can therefore send address information to an external service.
+
+## Configuration
+
+Set these per-site keys under `mod_geomap`:
+
+| Key | Purpose |
+| --- | --- |
+| `is_auto_geocode` | Automatically use external geocoding for resource addresses; defaults to `true`. |
+| `provider` | `googlemaps` selects Google Maps; otherwise the bundled map templates use OpenLayers. |
+| `google_api_key` | Key used for Google geocoding and the browser Maps script. |
+| `location_lat` | Initial latitude when the resource has no location; the admin template falls back to `0`. |
+| `location_lng` | Initial longitude when the resource has no location; the admin template falls back to `0`. |
+| `zoomlevel` | Initial zoom when no resource-specific zoom is available. |
+
+The OpenLayers admin map defaults to zoom `2` without a location and to `15`
+for a located resource without its own zoom setting. The static-map tag has its
+own default zoom of `14`. The provider setting selects map presentation; it does
+not change the geocoding fallback order. The Google key is exposed to map
+scripts through `m.geomap.google_api_key` and is not a server-only secret.
+
+Set `mod_geomap.is_auto_geocode` to `false` to prevent resource pivoting from
+sending addresses to Google Maps or Nominatim. Existing coordinates are retained
+when a lookup is skipped. Explicit coordinates and local precoded lookups still
+work. The admin's **Set to entered address** button and explicit Erlang geocoding
+calls remain available and can contact external services.
+
+## Nearby search
+
+The `geo_nearby` search accepts a resource `id` with pivoted coordinates or an
+explicit `latitude` and `longitude` pair. `distance` is in kilometers and defaults
+to `10`. Use `cat` to restrict resource categories.
+
+```django
+{% with m.search.geo_nearby::%{ id: id, distance: 10 } as results %}
+    {% for location_id in results %}
+        <a href=\"{{ location_id.page_url }}\">{{ location_id.title }}</a>
+    {% endfor %}
+{% endwith %}
+```
+
+The search selects a latitude/longitude bounding box and orders results by
+squared coordinate differences from the center. It is an approximate nearby
+search, not an exact circular-distance filter. The center resource is not
+excluded. Missing or unusable center coordinates do not produce a valid query.
+The normal Zotonic search pipeline applies resource visibility restrictions.
+
+The `has_geo` search term selects resources with both pivot coordinates present;
+`has_geo=false` selects resources missing either coordinate.
+
+## Admin panels
+
+Enabling the module adds a **Geolocation** panel to resource editing. It starts
+collapsed and loads the map lazily. The category's **Show geo data on edit page**
+feature controls its visibility; if unset, it follows **Show address**, defaulting
+to enabled. Resources with explicit latitude or longitude also show the panel.
+
+Expand the panel to edit latitude, longitude, and zoom level (`0` through `29`).
+Click the map to select a location, or use these controls:
+
+* **Set to current location** requests the browser's location, subject to the
+  visitor's permission and browser availability.
+* **Set to entered address** geocodes the address in the edit form. This button
+  is hidden when the form has no address-country field.
+* **Clear** removes the explicit coordinates from the form.
+* **Reset** restores the resource's saved coordinates.
+
+Save the resource to persist the edited values. The indexed coordinates shown
+below the inputs are the computed location; pivoting updates the searchable
+location after a save. Clearing explicit coordinates can allow address-derived
+geocoding to determine the location again.
+
+Country resources also receive a **World Map** panel with **Color** and **Value**
+fields. These store `map_color` and `map_value` for the country data returned by
+`m.geomap.countries`; they do not set the resource's coordinates.
+
+## Showing a map
+
+### Static tile map
+
+Render a resource's computed location without interactive-map JavaScript:
+
+```django
+{% geomap_static id=id zoom=14 n=2 %}
+```
+
+Or pass explicit coordinates:
+
+```django
+{% geomap_static latitude=52.34322 longitude=4.33423 zoom=14 %}
+```
+
+The tag renders `_geomap_static.tpl`, a grid of OpenStreetMap tile images with a
+marker. `n` defaults to two rows and columns; `rows` and `cols` can override each
+dimension, and `size` sets the displayed tile size (default `256` pixels).
+Override this template in the site to change its markup or styling.
+
+For a single remotely rendered map image, include:
+
+```django
+{% include \"_geomap_static_simple.tpl\" id=id zoom=14 width=440 height=280 %}
+```
+
+This template uses the resource's computed location and the external
+`staticmap.openstreetmap.de` image service. Its default image dimensions are
+`220` by `220` pixels. Both static approaches require a usable location.
+
+### Interactive OpenLayers map
+
+The `do_geomap` widget supports panning, zooming, and markers. With the map
+provider unset or set to `openlayers`, load `_js_geomap.tpl` after the site's
+standard jQuery/Zotonic scripts and before widget initialization. Keep the
+standard `{% all include \"_html_head.tpl\" %}` hook in the page head to load the
+module's OpenLayers CSS. Include the map scripts once per page.
+
+```django
+{% include \"_js_geomap.tpl\" %}
+<div class=\"do_geomap\" style=\"width: 100%; height: 400px;\"
+     data-geomap='{\"location_lat\":52.34322,\"location_lng\":4.33423,\"zoom\":14,\"marker\":true}'>
+</div>
+```
+
+The map container needs an explicit height. `location_lat` and `location_lng`
+set its center, `zoom` sets the initial zoom, and `marker=true` adds a marker
+there. For resource coordinates, read `id.computed_location_lat` and
+`id.computed_location_lng`, check that they are numeric, and serialize the
+options as JSON with HTML-attribute escaping rather than concatenating strings.
+
+For multiple locations, supply a `locations` array of objects containing `id`,
+`lat`, and `lng`, with optional `icon` and `data`. The OpenLayers widget clusters
+nearby markers; `clusterDistance`, `clusterBgColor`, and `clusterColor` control
+cluster presentation. Marker clicks invoke the `map_infobox` wired event with
+IDs and associated data, which the site can handle to display details.
+
+The older `_geomap.tpl` is experimental and uses an older OpenLayers API; use
+the widget with the bundled current assets for new templates.
+
+### Related components
+
+Use `geomap_distance` for distances between resource locations or coordinate
+maps. `m.geomap` exposes map configuration and country-map data. Its `nearby` and
+`locations` paths currently return empty maps; use `geo_nearby` for resource
+searches instead of relying on the legacy service descriptions in the README.
+
+The module observes resource reads, pivot updates/fields, search queries and
+terms, and map popup postbacks. Popup resource lists are filtered for visibility.
+").
 -author("Marc Worrell <marc@worrell.nl>").
 
 -mod_title("GeoMap services").
@@ -26,6 +199,13 @@
 -mod_depends([mod_l10n]).
 
 -mod_config([
+    #{
+        key => is_auto_geocode,
+        type => boolean,
+        default => true,
+        description => "Automatically look up resource addresses using external geocoding services. "
+                       "Disable to keep automatic lookups local; manual lookups remain available."
+    },
     #{
         key => google_api_key,
         type => string,
@@ -268,7 +448,11 @@ optional_geocode(R, Context) ->
                             ok;
                         _ ->
                             % Changed, and we are doing automatic lookups
-                            case find_geocode(Q, Type, R, Context) of
+                            IsAutoGeocode = m_config:get_boolean(mod_geomap, is_auto_geocode, true, Context),
+                            case find_geocode(Q, Type, R, IsAutoGeocode, Context) of
+                                {error, disabled} ->
+                                    % Keep existing coordinates when external lookup is disabled.
+                                    ok;
                                 {error, _} ->
                                     reset;
                                 {ok, {NewLat,NewLong}} ->
@@ -279,10 +463,17 @@ optional_geocode(R, Context) ->
     end.
 
 
+%% @doc Explicit lookups remain available regardless of the automatic lookup setting.
 find_geocode(Q, Type, R, Context) ->
+    find_geocode(Q, Type, R, true, Context).
+
+%% Local precoded coordinates do not disclose an address to an external service.
+find_geocode(Q, Type, R, IsExternalAllowed, Context) ->
     case geomap_precoded:find_geocode(Q, Type) of
         {ok, {_, _}} = OK ->
             OK;
+        {error, not_found} when not IsExternalAllowed ->
+            {error, disabled};
         {error, not_found} ->
             Q1 = maybe_expand_country(Q, Type, Context),
             find_geocode_api(Q1, Type, R, Context)
@@ -583,3 +774,46 @@ country_name(<<"gb-nir">>, _Context) -> <<"Northern Ireland">>;
 country_name(Iso, Context) ->
     m_l10n:country_name(Iso, en, Context).
 
+
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+%% Exercise the automatic path and the explicit API without real HTTP requests.
+automatic_geocode_disabled_test() ->
+    meck:new(m_config, [non_strict]),
+    meck:new(z_context, [non_strict]),
+    meck:new(z_depcache, [non_strict]),
+    meck:new(httpc, [unstick, non_strict]),
+    try
+        meck:expect(z_context, abs_url, fun("/", _) -> <<"https://example.test/">> end),
+        meck:expect(z_depcache, get, fun(googlemaps_error, _) -> undefined end),
+        meck:expect(m_config, get_boolean, fun(mod_geomap, is_auto_geocode, true, _) -> false end),
+        meck:expect(m_config, get_value, fun(mod_geomap, google_api_key, _) -> <<"test-key">> end),
+        meck:expect(httpc, request, fun(get, _, _, _) ->
+            {ok, {{"HTTP/1.1", 200, "OK"}, [{"content-type", "application/json"}],
+                <<"{\"status\":\"OK\",\"results\":[{\"geometry\":{\"location\":{\"lat\":52.0,\"lng\":4.0}}}]}">>}}
+        end),
+        Context = #context{},
+        ok = optional_geocode(#{<<"address_country">> => <<"zz">>}, Context),
+        Address = #{
+            <<"address_country">> => <<"gb-nir">>,
+            <<"address_street_1">> => <<"Example address">>
+        },
+        ok = optional_geocode(Address, Context),
+        {ok, 51.0834196, 10.4234469, _} = optional_geocode(#{<<"address_country">> => <<"de">>}, Context),
+        ?assertEqual(0, meck:num_calls(httpc, request, '_')),
+        ?assertEqual({ok, {52.0, 4.0}}, find_geocode(<<"Example address">>, full, #{}, Context)),
+        ?assertEqual(1, meck:num_calls(httpc, request, '_')),
+        meck:expect(m_config, get_boolean, fun(mod_geomap, is_auto_geocode, true, _) -> true end),
+        ?assertMatch({ok, 52.0, 4.0, _}, optional_geocode(Address, Context)),
+        ?assertEqual(2, meck:num_calls(httpc, request, '_')),
+        ?assert(meck:validate(m_config)),
+        ?assert(meck:validate(httpc))
+    after
+        meck:unload(httpc),
+        meck:unload(z_depcache),
+        meck:unload(z_context),
+        meck:unload(m_config)
+    end.
+-endif.
