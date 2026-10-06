@@ -183,6 +183,14 @@ the widget with the bundled current assets for new templates.
 
 ### Related components
 
+`m.geomap.countries` reads the bundled
+`priv/data/internet_users_2005_choropleth_lowres.json` from the
+`zotonic_mod_geomap` application using `code:priv_dir/1`. No copy in the site
+directory is needed. Decoded geometry is cached per site for one day, or until
+the site's depcache is flushed. Resource values and visibility checks are
+applied on every request. Flush the cache after replacing the data file to
+load the new geometry immediately.
+
 Use `geomap_distance` for distances between resource locations or coordinate
 maps. `m.geomap` exposes map configuration and country-map data. Its `nearby` and
 `locations` paths currently return empty maps; use `geo_nearby` for resource

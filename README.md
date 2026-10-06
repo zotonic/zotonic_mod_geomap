@@ -24,6 +24,19 @@ This modules has the following configuration keys:
  * `mod_geomap.zoomlevel` Default zoomlevel for map views (0..29)
 
 
+Country map data
+----------------
+
+`m.geomap.countries` reads the bundled
+`priv/data/internet_users_2005_choropleth_lowres.json` from the
+`zotonic_mod_geomap` application, located using `code:priv_dir/1`.
+No copy in the site directory is needed.
+
+The decoded country geometry is cached per site for one day, or until the
+cache is flushed. Country resource values and visibility checks are applied
+on every request. After replacing the data file, flush the site's depcache
+to load the new geometry immediately.
+
 Search query: geo_nearby
 ------------------------
 
@@ -90,4 +103,3 @@ Other parameters:
 
 `size`
   The size in pixels of each tile, defaults to 256.
-

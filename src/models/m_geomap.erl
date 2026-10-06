@@ -53,9 +53,12 @@ Unknown paths return `{error, unknown_path}`. GET model callbacks return
 
 ## Country data
 
-`countries` reads `data/internet_users_2005_choropleth_lowres.json` from the site
-directory. The file must exist and decode to a GeoJSON map. It is not read from
-the module's `priv/data` directory.
+`countries` reads `priv/data/internet_users_2005_choropleth_lowres.json` from the
+`zotonic_mod_geomap` application. The decoded geometry is cached in the site's
+depcache for one day, or until the cache is flushed. Resource values and
+visibility checks are applied separately on every request. No copy in the site
+directory is needed. After replacing the data file, flush the site's depcache
+to load the new geometry immediately.
 
 The model searches up to 1,000 resources in category `country`, checks their
 visibility, and groups them by `address_country`. It combines their IDs and
@@ -111,7 +114,7 @@ get_locations(Context) ->
 %% --------------------------------------------------------------------------------------------------------------------
 
 %% @doc Return a JSON with country coordinates and color/value coding.
-%% The coordinates for the JSON is fetched from the JSON files in priv/data/
+%% Geometry is cached from the module's priv/data; resource values are added per request.
 -spec get_countries_json( z:context() ) -> map().
 get_countries_json(Context) ->
     Coords = get_country_coords(Context),
@@ -156,11 +159,20 @@ get_countries(Context) ->
 %% @doc Return the base json coordinates for countries
 -spec get_country_coords( z:context() ) -> map().
 get_country_coords(Context) ->
-    JsonFile = filename:join([ z_path:site_dir(Context), "data", "internet_users_2005_choropleth_lowres.json" ]),
-    {ok, Data} = file:read_file(JsonFile),
-    case jsx:decode(Data) of
-        #{} = Coords -> Coords
-    end.
+    z_depcache:memo(
+        fun() ->
+            JsonFile = filename:join([
+                code:priv_dir(zotonic_mod_geomap),
+                "data",
+                "internet_users_2005_choropleth_lowres.json"
+            ]),
+            {ok, Data} = file:read_file(JsonFile),
+            #{ <<"type">> := <<"FeatureCollection">>, <<"features">> := _ } = Coords = z_json:decode(Data),
+            Coords
+        end,
+        {?MODULE, country_coords},
+        ?DAY,
+        Context).
 
 
 set_countries_values(#{ <<"type">> := <<"FeatureCollection">>, <<"features">> := Cs } = Map, Data) ->
