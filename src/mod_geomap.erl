@@ -207,10 +207,40 @@ terms, and map popup postbacks. Popup resource lists are filtered for visibility
                        "Disable to keep automatic lookups local; manual lookups remain available."
     },
     #{
+        key => provider,
+        type => string,
+        default => "openlayers",
+        description => "Map presentation provider: openlayers or googlemaps. "
+                       "Does not change the geocoding services used for address lookups."
+    },
+    #{
         key => google_api_key,
         type => string,
         default => undefined,
-        description => "Google Maps API key for geocoding service."
+        description => "Google Maps API key for server-side geocoding and browser maps. "
+                       "Exposed to browser scripts through m.geomap.google_api_key."
+    },
+    #{
+        key => location_lat,
+        type => float,
+        default => 0,
+        description => "Initial map latitude in degrees when the resource has no location. "
+                       "The admin map falls back to 0; does not set resource coordinates."
+    },
+    #{
+        key => location_lng,
+        type => float,
+        default => 0,
+        description => "Initial map longitude in degrees when the resource has no location. "
+                       "The admin map falls back to 0; does not set resource coordinates."
+    },
+    #{
+        key => zoomlevel,
+        type => integer,
+        default => 2,
+        description => "Initial admin map zoom (0..29) when the resource has no location "
+                       "or zoom setting. Located resources default to 15; "
+                       "static maps have a separate default of 14."
     }
 ]).
 
