@@ -1,0 +1,32 @@
+/* Geolocation widget in the admin edit page (_geomap_admin_location_map.tpl) */
+
+.admin-geomap {
+    position: relative;
+}
+
+/* While "Set to current location" or "Set to entered address" is working: a spinner in the
+ * Latitude field. The spinner image is square with its dots in one row through the middle,
+ * so the field only cuts off the empty top and bottom. The image is set by the script
+ * (spinner.svg, or spinner.gif when there is no svg). */
+#location_lat.geomap-locating {
+    background-repeat: no-repeat;
+    background-position: right -8px center;
+    background-size: 120px 120px;
+}
+
+/* Manual: the note on the map, until Clear */
+.geomap-manual-note {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    border-radius: 16px;
+    background: rgba(28, 27, 31, 0.85);
+    color: #fff;
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+    pointer-events: none;
+}
