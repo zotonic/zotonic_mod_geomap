@@ -1,0 +1,128 @@
+# Translations for zotonic_mod_geomap (tl).
+# This file is distributed under the same license as zotonic_mod_geomap.
+msgid ""
+msgstr ""
+"Project-Id-Version: zotonic_mod_geomap\n"
+"POT-Creation-Date: 2026-11-24 00:00+0100\n"
+"PO-Revision-Date: 2026-11-24 00:00+0100\n"
+"Last-Translator: Zotonic contributors\n"
+"Language-Team: Zotonic contributors\n"
+"Language: tl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:33
+msgid "Clear"
+msgstr "I-clear"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:38
+msgid "Click to set location"
+msgstr "I-click upang itakda ang lokasyon"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:16
+msgid "Color"
+msgstr "Kulay"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:223
+msgid "Could not find the location."
+msgstr "Hindi mahanap ang lokasyon."
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:141
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:339
+msgid "Could not find your current location."
+msgstr "Hindi mahanap ang kasalukuyan mong lokasyon."
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location.tpl:5
+msgid "Geolocation"
+msgstr "Heolokasyon"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:11
+msgid ""
+"Here you can define the color and display value for the world map of "
+"countries."
+msgstr ""
+"Dito mo maaaring itakda ang kulay at halagang ipapakita para sa mga bansa sa "
+"mapa ng mundo."
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:7
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:8
+msgid "Latitude"
+msgstr "Latitud"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:275
+msgid "Location has been set."
+msgstr "Naitakda na ang lokasyon."
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:15
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:16
+msgid "Longitude"
+msgstr "Longhitud"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:31
+msgid "Manual"
+msgstr "Manwal"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_static_simple.tpl:3
+#: zotonic_mod_geomap/priv/templates/geomap_fullscreen.tpl:3
+msgid "Map"
+msgstr "Mapa"
+
+#: zotonic_mod_geomap/priv/templates/geomap_fullscreen.tpl:3
+msgid "Map of"
+msgstr "Mapa ng"
+
+#: zotonic_mod_geomap/priv/templates/_geomap.tpl:12
+msgid "Markers"
+msgstr "Mga pananda"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:41
+msgid "Please click on the map to select the location."
+msgstr "I-click ang mapa upang piliin ang lokasyon."
+
+#: zotonic_mod_geomap/priv/templates/_geomap_popup.tpl:11
+msgid "Read more"
+msgstr "Magbasa pa"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:34
+msgid "Reset"
+msgstr "I-reset"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:30
+msgid "Set to current location"
+msgstr "Gamitin ang kasalukuyang lokasyon"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:32
+msgid "Set to entered address"
+msgstr "Gamitin ang inilagay na address"
+
+#: zotonic_mod_geomap/priv/templates/_admin_features.category.tpl:10
+msgid "Show geo data on edit page"
+msgstr "Ipakita ang heograpikong datos sa pahina ng pag-edit"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:31
+msgid ""
+"Show the map at your current location, then click on the map to set the "
+"location"
+msgstr ""
+"Ipakita ang mapa sa kasalukuyan mong lokasyon, pagkatapos ay i-click ang "
+"mapa upang itakda ang lokasyon"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:23
+msgid "Value"
+msgstr "Halaga"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:5
+msgid "World Map"
+msgstr "Mapa ng mundo"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:24
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:25
+msgid "Zoom Level"
+msgstr "Antas ng zoom"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:10
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:18
+msgid "indexed"
+msgstr "na-index"

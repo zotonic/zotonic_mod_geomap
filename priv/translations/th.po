@@ -1,0 +1,124 @@
+# Translations for zotonic_mod_geomap (th).
+# This file is distributed under the same license as zotonic_mod_geomap.
+msgid ""
+msgstr ""
+"Project-Id-Version: zotonic_mod_geomap\n"
+"POT-Creation-Date: 2026-11-24 00:00+0100\n"
+"PO-Revision-Date: 2026-11-24 00:00+0100\n"
+"Last-Translator: Zotonic contributors\n"
+"Language-Team: Zotonic contributors\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:33
+msgid "Clear"
+msgstr "ล้าง"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:38
+msgid "Click to set location"
+msgstr "คลิกเพื่อกำหนดตำแหน่ง"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:16
+msgid "Color"
+msgstr "สี"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:223
+msgid "Could not find the location."
+msgstr "ไม่พบตำแหน่ง"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:141
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:339
+msgid "Could not find your current location."
+msgstr "ไม่พบตำแหน่งปัจจุบันของคุณ"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location.tpl:5
+msgid "Geolocation"
+msgstr "ตำแหน่งทางภูมิศาสตร์"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:11
+msgid ""
+"Here you can define the color and display value for the world map of "
+"countries."
+msgstr "คุณสามารถกำหนดสีและค่าที่แสดงสำหรับประเทศต่างๆ บนแผนที่โลกได้ที่นี่"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:7
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:8
+msgid "Latitude"
+msgstr "ละติจูด"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:275
+msgid "Location has been set."
+msgstr "กำหนดตำแหน่งแล้ว"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:15
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:16
+msgid "Longitude"
+msgstr "ลองจิจูด"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:31
+msgid "Manual"
+msgstr "กำหนดเอง"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_static_simple.tpl:3
+#: zotonic_mod_geomap/priv/templates/geomap_fullscreen.tpl:3
+msgid "Map"
+msgstr "แผนที่"
+
+#: zotonic_mod_geomap/priv/templates/geomap_fullscreen.tpl:3
+msgid "Map of"
+msgstr "แผนที่ของ"
+
+#: zotonic_mod_geomap/priv/templates/_geomap.tpl:12
+msgid "Markers"
+msgstr "เครื่องหมาย"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:41
+msgid "Please click on the map to select the location."
+msgstr "คลิกบนแผนที่เพื่อเลือกตำแหน่ง"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_popup.tpl:11
+msgid "Read more"
+msgstr "อ่านเพิ่มเติม"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:34
+msgid "Reset"
+msgstr "รีเซ็ต"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:30
+msgid "Set to current location"
+msgstr "ใช้ตำแหน่งปัจจุบัน"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:32
+msgid "Set to entered address"
+msgstr "ใช้ที่อยู่ที่ป้อน"
+
+#: zotonic_mod_geomap/priv/templates/_admin_features.category.tpl:10
+msgid "Show geo data on edit page"
+msgstr "แสดงข้อมูลทางภูมิศาสตร์ในหน้าแก้ไข"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:31
+msgid ""
+"Show the map at your current location, then click on the map to set the "
+"location"
+msgstr "แสดงแผนที่ที่ตำแหน่งปัจจุบันของคุณ แล้วคลิกบนแผนที่เพื่อกำหนดตำแหน่ง"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:23
+msgid "Value"
+msgstr "ค่า"
+
+#: zotonic_mod_geomap/priv/templates/_admin_edit_content.country.tpl:5
+msgid "World Map"
+msgstr "แผนที่โลก"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:24
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:25
+msgid "Zoom Level"
+msgstr "ระดับการซูม"
+
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:10
+#: zotonic_mod_geomap/priv/templates/_geomap_admin_location_map.tpl:18
+msgid "indexed"
+msgstr "จัดทำดัชนีแล้ว"
