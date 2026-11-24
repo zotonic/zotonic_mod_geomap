@@ -13,5 +13,8 @@
 {% endblock %}
 
 {% block widget_after %}
-{% lib "css/ol.css" %}
+{% lib
+    "css/ol.css"
+    "css/geomap-admin.css"
+%}
 {% endblock %}
